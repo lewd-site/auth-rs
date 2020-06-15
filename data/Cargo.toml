@@ -1,0 +1,11 @@
+[package]
+name = "auth_data"
+version = "1.0.0"
+authors = ["Nina Lisitsinskaya <vvatashi@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+diesel = { version = "1.4.4", features = ["chrono", "postgres"] }
+pwhash = "0.3"
+serde = { version = "1.0", features = ["derive"] }
