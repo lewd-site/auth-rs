@@ -1,6 +1,6 @@
 [global]
 address = "127.0.0.1"
-port = 8000
+port = 8100
 
 [global.databases]
 pgsql_auth = { url = "postgres://auth:auth@localhost/auth" }
