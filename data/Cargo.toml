@@ -9,3 +9,4 @@ chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "1.4.4", features = ["chrono", "postgres"] }
 pwhash = "0.3"
 serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "0.8", features = ["v4"] }
