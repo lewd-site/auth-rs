@@ -1,7 +1,31 @@
 use crate::schema::users;
 use chrono::prelude::*;
+use chrono::Duration;
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use pwhash::bcrypt;
+use serde::{Deserialize, Serialize};
+use std::fs;
 use uuid::Uuid;
+
+lazy_static! {
+    static ref ENCODING_KEY_RAW: Vec<u8> =
+        fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../private.pem")).unwrap();
+    static ref DECODING_KEY_RAW: Vec<u8> =
+        fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../public.pem")).unwrap();
+    static ref ENCODING_KEY: EncodingKey = EncodingKey::from_rsa_pem(&ENCODING_KEY_RAW).unwrap();
+    static ref DECODING_KEY: DecodingKey<'static> =
+        DecodingKey::from_rsa_pem(&DECODING_KEY_RAW).unwrap();
+}
+
+#[derive(Serialize, Deserialize)]
+struct Claims {
+    user_uuid: String,
+    user_name: String,
+    user_email: String,
+    iat: DateTime<Utc>,
+    nbf: DateTime<Utc>,
+    exp: DateTime<Utc>,
+}
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -36,6 +60,39 @@ impl User {
 
     pub fn verify_password(&self, password: &str) -> bool {
         bcrypt::verify(password, &self.password)
+    }
+
+    pub fn create_access_token(&self) -> String {
+        let header = Header::new(Algorithm::RS256);
+
+        let now = Utc::now();
+        let claims = Claims {
+            user_uuid: self.uuid.clone(),
+            user_name: self.name.clone(),
+            user_email: self.email.clone(),
+            iat: now,
+            nbf: now,
+            exp: now + Duration::days(1),
+        };
+
+        jsonwebtoken::encode(&header, &claims, &*ENCODING_KEY).unwrap()
+    }
+
+    pub fn validate_access_token(access_token: &str) -> bool {
+        let validation = Validation {
+            algorithms: vec![Algorithm::RS256],
+            validate_nbf: true,
+            validate_exp: true,
+            leeway: 60,
+            aud: None,
+            iss: None,
+            sub: None,
+        };
+
+        match jsonwebtoken::decode::<Claims>(&access_token, &*DECODING_KEY, &validation) {
+            Ok(_) => true,
+            _ => false,
+        }
     }
 }
 
