@@ -3,4 +3,6 @@
 /target
 /www
 /.env
+/private.pem
+/public.pem
 /yarn-error.log

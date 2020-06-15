@@ -1,7 +1,6 @@
 use crate::schema::users;
 use chrono::prelude::*;
 use pwhash::bcrypt;
-use serde::Serialize;
 use uuid::Uuid;
 
 #[derive(Insertable)]
@@ -14,7 +13,7 @@ pub struct NewUser {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Identifiable, Queryable, Serialize)]
+#[derive(Identifiable, Queryable)]
 pub struct User {
     pub id: i32,
     pub uuid: String,

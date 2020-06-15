@@ -41,12 +41,22 @@ impl UserRepository {
         items.into_iter().next()
     }
 
-    pub fn create(conn: &PgConnection, user: &NewUser) -> User {
+    pub fn create(conn: &PgConnection, new_user: &NewUser) -> Result<User, String> {
         use crate::schema::users::dsl::*;
 
-        diesel::insert_into(users)
-            .values(user)
+        if let Some(_) = UserRepository::get_by_name(conn, &new_user.name) {
+            return Err(format!("User '{}' already exists", new_user.name));
+        }
+
+        if let Some(_) = UserRepository::get_by_email(conn, &new_user.email) {
+            return Err(format!("User '{}' already exists", new_user.email));
+        }
+
+        let user = diesel::insert_into(users)
+            .values(new_user)
             .get_result(conn)
-            .unwrap()
+            .unwrap();
+
+        Ok(user)
     }
 }
