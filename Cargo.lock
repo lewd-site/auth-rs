@@ -84,6 +84,7 @@ dependencies = [
  "jsonwebtoken",
  "lazy_static",
  "pwhash",
+ "rand 0.7.3",
  "serde",
  "uuid",
 ]

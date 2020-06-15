@@ -1,3 +1,4 @@
+use crate::models::tokens::RefreshToken;
 use crate::models::users::{NewUser, User};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -58,5 +59,20 @@ impl UserRepository {
             .unwrap();
 
         Ok(user)
+    }
+
+    pub fn update_refresh_token(
+        conn: &PgConnection,
+        user: &User,
+        new_token: Option<&RefreshToken>,
+    ) -> User {
+        use crate::schema::users::dsl::*;
+
+        let new_token = new_token.map(|t| t.to_string());
+
+        diesel::update(user)
+            .set(refresh_token.eq(new_token))
+            .get_result(conn)
+            .unwrap()
     }
 }

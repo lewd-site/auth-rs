@@ -6,5 +6,6 @@ table! {
         email -> Varchar,
         password -> Varchar,
         created_at -> Timestamp,
+        refresh_token -> Nullable<Varchar>,
     }
 }

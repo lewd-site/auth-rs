@@ -1,4 +1,6 @@
 use crate::AuthDbConn;
+use auth_data::models::tokens::{AccessToken, RefreshToken};
+use auth_data::models::users::User;
 use auth_data::repositories::users::UserRepository;
 use rocket::response::status::{BadRequest, Created};
 use rocket_contrib::json::Json;
@@ -7,6 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize)]
 pub struct TokenJson {
     access_token: String,
+    refresh_token: String,
 }
 
 #[derive(Serialize)]
@@ -18,7 +21,8 @@ pub struct ErrorJson {
 pub struct CreateTokenJson {
     name: Option<String>,
     email: Option<String>,
-    password: String,
+    password: Option<String>,
+    refresh_token: Option<String>,
 }
 
 #[derive(Responder)]
@@ -28,10 +32,11 @@ pub enum TokenResponse {
 }
 
 impl TokenResponse {
-    fn created(token: &str) -> TokenResponse {
+    fn created(access_token: AccessToken, refresh_token: RefreshToken) -> TokenResponse {
         let location = String::from("/api/v1/tokens");
         let json = Json(TokenJson {
-            access_token: String::from(token),
+            access_token: access_token.to_string(),
+            refresh_token: refresh_token.to_string(),
         });
         TokenResponse::Created(Created(location, Some(json)))
     }
@@ -43,21 +48,43 @@ impl TokenResponse {
     }
 }
 
+fn refresh(conn: &AuthDbConn, user: &User) -> (AccessToken, RefreshToken) {
+    let access_token = AccessToken::new(&user);
+
+    let refresh_token = RefreshToken::new();
+    UserRepository::update_refresh_token(&conn, &user, Some(&refresh_token));
+
+    (access_token, refresh_token)
+}
+
 #[post("/", format = "json", data = "<data>")]
-pub fn create_access_token(data: Json<CreateTokenJson>, conn: AuthDbConn) -> TokenResponse {
+pub fn create_token(data: Json<CreateTokenJson>, conn: AuthDbConn) -> TokenResponse {
     let user = match (&data.name, &data.email) {
-        (Some(name), _) => UserRepository::get_by_name(&conn, &name),
-        (_, Some(email)) => UserRepository::get_by_email(&conn, &email),
-        _ => return TokenResponse::error("Username or email required"),
+        (Some(name), None) => UserRepository::get_by_name(&conn, &name),
+        (None, Some(email)) => UserRepository::get_by_email(&conn, &email),
+        _ => return TokenResponse::error("Either name or email required"),
     };
 
-    if let Some(user) = user {
-        if user.verify_password(&data.password) {
-            TokenResponse::created(&user.create_access_token())
-        } else {
-            TokenResponse::error("Incorrect password")
-        }
-    } else {
-        TokenResponse::error("User not found")
+    match user {
+        Some(user) => match (&data.password, &data.refresh_token) {
+            (Some(password), None) => {
+                if user.verify_password(&password) {
+                    let (access_token, refresh_token) = refresh(&conn, &user);
+                    TokenResponse::created(access_token, refresh_token)
+                } else {
+                    TokenResponse::error("Incorrect password")
+                }
+            }
+            (None, Some(refresh_token)) => {
+                if user.verify_refresh_token(&refresh_token) {
+                    let (access_token, refresh_token) = refresh(&conn, &user);
+                    TokenResponse::created(access_token, refresh_token)
+                } else {
+                    TokenResponse::error("Incorrect refresh token")
+                }
+            }
+            _ => TokenResponse::error("Either password or refresh_token required"),
+        },
+        None => TokenResponse::error("User not found"),
     }
 }
