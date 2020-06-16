@@ -32,6 +32,7 @@ window.addEventListener('message', async e => {
     switch (e.data.command) {
         case 'get_token':
             e.source.postMessage({
+                id: e.data.id,
                 command: 'set_token',
                 access_token: localStorage['access_token'],
                 refresh_token: localStorage['refresh_token'],
@@ -42,15 +43,24 @@ window.addEventListener('message', async e => {
             const { name, email, password, refresh_token } = e.data;
             const request = { name, email, password, refresh_token };
 
-            const response = await refresh(request);
-            localStorage['access_token'] = response.access_token;
-            localStorage['refresh_token'] = response.refresh_token;
+            try {
+                const response = await refresh(request);
+                localStorage['access_token'] = response.access_token;
+                localStorage['refresh_token'] = response.refresh_token;
 
-            e.source.postMessage({
-                command: 'set_token',
-                access_token: response.access_token,
-                refresh_token: response.refresh_token,
-            }, e.origin);
+                e.source.postMessage({
+                    id: e.data.id,
+                    command: 'set_token',
+                    access_token: response.access_token,
+                    refresh_token: response.refresh_token,
+                }, e.origin);
+            } catch (err) {
+                e.source.postMessage({
+                    id: e.data.id,
+                    command: 'error',
+                    error: err.message,
+                }, e.origin);
+            }
             break;
     }
 });
