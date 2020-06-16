@@ -23,9 +23,9 @@ struct Claims {
     user_uuid: String,
     user_name: String,
     user_email: String,
-    iat: DateTime<Utc>,
-    nbf: DateTime<Utc>,
-    exp: DateTime<Utc>,
+    iat: u64,
+    nbf: u64,
+    exp: u64,
 }
 
 pub struct AccessToken(String);
@@ -39,9 +39,9 @@ impl AccessToken {
             user_uuid: user.uuid.clone(),
             user_name: user.name.clone(),
             user_email: user.email.clone(),
-            iat: now,
-            nbf: now,
-            exp: now + Duration::hours(1),
+            iat: now.timestamp() as u64,
+            nbf: now.timestamp() as u64,
+            exp: (now + Duration::hours(1)).timestamp() as u64,
         };
 
         AccessToken(jsonwebtoken::encode(&header, &claims, &*ENCODING_KEY).unwrap())
