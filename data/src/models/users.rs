@@ -11,7 +11,6 @@ pub struct NewUser {
     pub email: String,
     pub password: String,
     pub created_at: NaiveDateTime,
-    pub refresh_token: Option<String>,
 }
 
 #[derive(Identifiable, Queryable)]
@@ -22,7 +21,6 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub created_at: NaiveDateTime,
-    pub refresh_token: Option<String>,
 }
 
 impl User {
@@ -33,19 +31,11 @@ impl User {
             email: String::from(email),
             password: bcrypt::hash(password).unwrap(),
             created_at: NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0),
-            refresh_token: None,
         }
     }
 
     pub fn verify_password(&self, password: &str) -> bool {
         bcrypt::verify(password, &self.password)
-    }
-
-    pub fn verify_refresh_token(&self, refresh_token: &str) -> bool {
-        match &self.refresh_token {
-            Some(token) => token == refresh_token,
-            None => false,
-        }
     }
 }
 
@@ -63,7 +53,6 @@ mod tests {
             email: new_user.email,
             password: new_user.password,
             created_at: new_user.created_at,
-            refresh_token: None,
         };
 
         let result = user.verify_password("password");
@@ -80,7 +69,6 @@ mod tests {
             email: new_user.email,
             password: new_user.password,
             created_at: new_user.created_at,
-            refresh_token: None,
         };
 
         let result = user.verify_password("something");

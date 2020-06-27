@@ -1,6 +1,7 @@
 use crate::AuthDbConn;
+use auth_data::models::sessions::NewSession;
 use auth_data::models::tokens::{AccessToken, RefreshToken};
-use auth_data::models::users::User;
+use auth_data::repositories::sessions::SessionRepository;
 use auth_data::repositories::users::UserRepository;
 use rocket::response::status::{BadRequest, Created};
 use rocket_contrib::json::Json;
@@ -48,15 +49,6 @@ impl TokenResponse {
     }
 }
 
-fn refresh(conn: &AuthDbConn, user: &User) -> (AccessToken, RefreshToken) {
-    let access_token = AccessToken::new(&user);
-
-    let refresh_token = RefreshToken::new();
-    UserRepository::update_refresh_token(&conn, &user, Some(&refresh_token));
-
-    (access_token, refresh_token)
-}
-
 #[post("/", format = "json", data = "<data>")]
 pub fn create_token(data: Json<CreateTokenJson>, conn: AuthDbConn) -> TokenResponse {
     let user = match (&data.name, &data.email) {
@@ -69,18 +61,39 @@ pub fn create_token(data: Json<CreateTokenJson>, conn: AuthDbConn) -> TokenRespo
         Some(user) => match (&data.password, &data.refresh_token) {
             (Some(password), None) => {
                 if user.verify_password(&password) {
-                    let (access_token, refresh_token) = refresh(&conn, &user);
+                    let access_token = AccessToken::new(&user);
+                    let refresh_token = RefreshToken::new();
+                    SessionRepository::create(
+                        &conn,
+                        &NewSession {
+                            user_id: user.id,
+                            refresh_token: refresh_token.to_string(),
+                        },
+                    );
+
                     TokenResponse::created(access_token, refresh_token)
                 } else {
                     TokenResponse::error("Incorrect password")
                 }
             }
             (None, Some(refresh_token)) => {
-                if user.verify_refresh_token(&refresh_token) {
-                    let (access_token, refresh_token) = refresh(&conn, &user);
-                    TokenResponse::created(access_token, refresh_token)
-                } else {
-                    TokenResponse::error("Incorrect refresh token")
+                match SessionRepository::get_by_token(&conn, user.id, &refresh_token) {
+                    Some(session) => {
+                        SessionRepository::delete(&conn, &session);
+
+                        let access_token = AccessToken::new(&user);
+                        let refresh_token = RefreshToken::new();
+                        SessionRepository::create(
+                            &conn,
+                            &NewSession {
+                                user_id: user.id,
+                                refresh_token: refresh_token.to_string(),
+                            },
+                        );
+
+                        TokenResponse::created(access_token, refresh_token)
+                    }
+                    None => TokenResponse::error("Incorrect refresh token"),
                 }
             }
             _ => TokenResponse::error("Either password or refresh_token required"),
