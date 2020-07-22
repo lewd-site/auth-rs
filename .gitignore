@@ -1,7 +1,8 @@
 /.cache
+/frontend/config.ts
 /node_modules
 /target
-/www
+/www/assets
 /.env
 /private.pem
 /public.pem

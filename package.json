@@ -6,11 +6,17 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "parcel watch -d www frontend/index.html",
-    "build": "parcel build -d www frontend/index.html"
+    "start": "GIT_SHA=$(git rev-parse HEAD) parcel watch -d www/assets --public-url /assets frontend/index.ts",
+    "build": "GIT_SHA=$(git rev-parse HEAD) parcel build -d www/assets --public-url /assets frontend/index.ts"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
+    "autoprefixer": "^9.8.5",
+    "eslint": "^7.5.0",
+    "eslint-config-prettier": "^6.11.0",
     "parcel-bundler": "^1.12.4",
+    "prettier": "^2.0.5",
     "typescript": "^3.9.7"
   },
   "dependencies": {

@@ -1,21 +1,16 @@
 {
-    "include": [
-        "frontend/**/*.ts",
-    ],
-    "exclude": [
-        "node_modules/**/*"
-    ],
-    "compilerOptions": {
-        "target": "ES2015",
-        "module": "CommonJS",
-        "lib": [
-            "DOM",
-            "DOM.Iterable",
-            "ES2017"
-        ],
-        "outDir": "./www",
-        "esModuleInterop": true,
-        "noImplicitAny": true,
-        "strict": true
-    }
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "inlineSources": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2017"],
+    "module": "CommonJS",
+    "noImplicitAny": true,
+    "outDir": "./www",
+    "sourceMap": true,
+    "sourceRoot": "/",
+    "strict": true,
+    "target": "ES2015"
+  },
+  "exclude": ["node_modules/**/*"],
+  "include": ["frontend/**/*.ts"]
 }
