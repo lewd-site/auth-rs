@@ -1,8 +1,8 @@
 use crate::AuthDbConn;
-use auth_data::models::sessions::NewSession;
-use auth_data::models::tokens::{AccessToken, RefreshToken};
-use auth_data::repositories::sessions::SessionRepository;
-use auth_data::repositories::users::UserRepository;
+use auth::models::sessions::NewSession;
+use auth::models::tokens::{AccessToken, RefreshToken};
+use auth::repositories::sessions::SessionRepository;
+use auth::repositories::users::UserRepository;
 use rocket::response::status::{BadRequest, Created};
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};

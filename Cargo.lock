@@ -76,7 +76,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "auth_data"
+name = "auth"
 version = "1.0.0"
 dependencies = [
  "chrono",
@@ -93,7 +93,7 @@ dependencies = [
 name = "auth_web"
 version = "1.0.0"
 dependencies = [
- "auth_data",
+ "auth",
  "chrono",
  "diesel",
  "rocket",

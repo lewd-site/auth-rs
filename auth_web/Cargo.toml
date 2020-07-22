@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
-auth_data = { path = "../data" }
+auth = { path = "../auth" }
 diesel = { version = "1.4.4", features = ["postgres"] }
 rocket = "0.4.5"
 rocket_contrib = { version = "0.4.5", features = ["databases", "diesel_postgres_pool", "json", "serve"] }

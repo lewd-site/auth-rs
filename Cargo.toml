@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "data",
-    "web",
+    "auth",
+    "auth_web",
 ]

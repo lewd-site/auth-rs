@@ -1,6 +1,6 @@
 use crate::AuthDbConn;
-use auth_data::models::users::User;
-use auth_data::repositories::users::UserRepository;
+use auth::models::users::User;
+use auth::repositories::users::UserRepository;
 use chrono::prelude::*;
 use rocket::response::status::{BadRequest, Created};
 use rocket_contrib::json::Json;

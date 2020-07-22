@@ -1,5 +1,5 @@
 [package]
-name = "auth_data"
+name = "auth"
 version = "1.0.0"
 authors = ["Nina Lisitsinskaya <vvatashi@protonmail.com>"]
 edition = "2018"
