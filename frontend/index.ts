@@ -74,3 +74,7 @@ window.addEventListener('message', async (e) => {
     }
   }
 });
+
+if (window.parent) {
+  window.parent.postMessage('sso_loaded', '*');
+}
